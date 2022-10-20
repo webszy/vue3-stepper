@@ -14,28 +14,38 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {ref,computed,unref,} from 'vue'
-
-const props = defineProps({
-  modelValue:{type:Number,require:true,default:1},
-  steps:{type:Array,required:false,default:()=>[{text:'1',label:'One'},{text:'2',label:'Two'}]},
-  activeColor:{type:String,required:false,default:'#AD0CD3'},
-  inActiveColor:{type:String,required:false,default:'#F6F6F6'},
-  progressPadding:{type:String,required:false,default:'70px'},
-  max: {type:Number, require:false},
-  vaildator:{type:Function,required:false}
+interface IStep {
+  text:string;
+  label:string;
+}
+const props = withDefaults(defineProps< {
+  modelValue:number;
+  steps:IStep[];
+  activeColor?:string;
+  inActiveColor?:string;
+  progressPadding?:string;
+  max?:number;
+  vaildator?:Function;
+}>(), {
+  modelValue:1,
+  steps:()=>[{text:'1',label:'One'},{text:'2',label:'Two'}],
+  activeColor:'#AD0CD3',
+  inActiveColor:'#F6F6F6',
+  progressPadding:'70px'
 })
+
 const emits = defineEmits(['update:modelValue'])
 const el = ref(null)
 const betweenNum = computed(()=>Math.floor(100/(props.steps.length+1)))
 const circleLeft = computed(() => {
   if(unref(el)){
-    const dom = unref(el)
+    const dom = unref(el) as unknown as HTMLDivElement
     const result = []
     let j = 1
     for(let i=0;i<dom.children.length;i++){
-      const e = dom.children[i]
+      const e = dom.children[i] as HTMLElement
       if(e.className.includes('circle')){
         // console.log(e.offsetWidth)
         result.push(`calc(${j*unref(betweenNum)}% - ${e.offsetWidth * 0.5}px)`)
@@ -54,13 +64,13 @@ const progressWidth = computed(() => {
     return `${props.modelValue * unref(betweenNum)}%`
   }
 })
-const activeClass = (index)=>{
+const activeClass = (index:number)=>{
   if(props.max && index + 1 > props.max){
     return  ''
   }
   return index <= props.modelValue - 1 ? 'active' : ''
 }
-const handleClick = (index)=>{
+const handleClick = (index:number)=>{
   if(props.vaildator && !props.vaildator(index,props.steps)){
     return
   }
